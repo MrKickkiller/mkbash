@@ -1,0 +1,58 @@
+#!/bin/bash
+
+cmd="$(basename "$0")"
+
+show_syntax() {
+	echo "Syntax: $cmd [OPTIONS] filename..." >&2
+	echo >&2
+	echo "  Options:" >&2
+	echo "   -h  Show this help text and exit" >&2
+	echo "   -o [getoptstring]  Initialise getopts with this string. Otherwise with an"
+	echo "                      empty string" >&2
+}
+syntax_error() {
+	show_syntax
+	exit 1
+}
+
+while getopts ":ho:" opt; do
+	case "$opt" in
+		h) show_syntax; exit; ;;
+		o) opts="$OPTARG"; ;;
+		\?) syntax_error; ;;
+	esac
+done
+shift $((OPTIND-1))
+
+if [ $# -eq 0 ]; then
+	syntax_error
+fi
+
+names=("$@")
+for (( i=0; i<$#; i++ )); do
+	scriptname="${names[$i]}"
+	echo '#!/bin/bash
+cmd="$(basename "$0")"
+
+show_syntax() {
+	echo "Syntax: $cmd [OPTIONS] filename..." >&2
+	echo >&2
+	echo "  Options:" >&2
+	echo "   -h  Show this help text and exit" >&2
+}
+syntax_error() {
+	show_syntax
+	exit 1
+}
+
+while getopts "'"$opts"'" opt; do
+	case "$opt" in
+		h) show_syntax; exit; ;;
+		\?) syntax_error; ;;
+	esac
+done
+shift $((OPTIND-1))' > "$scriptname"
+
+	chmod +x "$scriptname"
+	echo "Created $scriptname"
+done
